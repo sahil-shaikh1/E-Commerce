@@ -57,7 +57,7 @@ const Dashboard = () => {
   }, [wishlist]);
 
   // API base URL
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = 'https://e-commerce-mw7r.onrender.com/api';
 
   // Fetch products from backend
   useEffect(() => {
