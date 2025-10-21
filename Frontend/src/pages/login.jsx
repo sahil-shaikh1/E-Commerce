@@ -41,7 +41,7 @@ const Login = () => {
                 payload = { fullName, email, password };
             }
 
-            const response = await fetch(`http://localhost:5000${endpoint}`, {
+            const response = await fetch(`https://e-commerce-mw7r.onrender.com${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
