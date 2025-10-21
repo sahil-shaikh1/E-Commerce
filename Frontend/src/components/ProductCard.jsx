@@ -80,7 +80,7 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist, isInWishlist, cart
               ? "https://via.placeholder.com/300x400?text=Image+Not+Found"
               : product.image?.startsWith("http")
               ? product.image // full URL (for online images)
-              : `http://localhost:5000/${product.image}` // local uploads folder
+              : `https://e-commerce-mw7r.onrender.com/${product.image}` // local uploads folder
           }
           alt={product.name || "Product image"}
           className={`w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 ${
