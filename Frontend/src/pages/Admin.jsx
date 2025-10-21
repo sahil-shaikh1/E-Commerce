@@ -31,7 +31,7 @@ const Admin = () => {
   const [imagePreview, setImagePreview] = useState('');
   const navigate = useNavigate();
 
-  const API_BASE = 'http://localhost:5000/api/admin';
+  const API_BASE = 'https://e-commerce-mw7r.onrender.com/api/admin';
 
   useEffect(() => {
     checkAuth();
@@ -530,6 +530,7 @@ const Admin = () => {
                       </div>
                     </div>
                   )}
+                  
                 </div>
               </div>
 
