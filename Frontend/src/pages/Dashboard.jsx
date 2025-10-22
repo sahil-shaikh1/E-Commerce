@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   
   const navigate = useNavigate();
 
@@ -37,6 +38,17 @@ const Dashboard = () => {
     const token = localStorage.getItem('authToken');
     return !!token;
   };
+
+  // Check mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Debug effects
   useEffect(() => {
@@ -80,7 +92,7 @@ const Dashboard = () => {
           ...p,
           image: p.image?.startsWith('http')
             ? p.image
-            : `http://localhost:5000/${p.image?.replace(/^\/+/, '')}`
+            : `https://e-commerce-mw7r.onrender.com/${p.image?.replace(/^\/+/, '')}`
         }));
         setProducts(updatedProducts);
       } else {
@@ -153,7 +165,7 @@ const Dashboard = () => {
     if (notification) {
       const timer = setTimeout(() => {
         setNotification('');
-      }, 4000); // Increased timeout for better readability
+      }, 4000);
       return () => clearTimeout(timer);
     }
   }, [notification]);
@@ -169,7 +181,7 @@ const Dashboard = () => {
     }
   };
 
-  // Cart functions - UPDATED WITH STOCK ALERTS
+  // Cart functions
   const handleAddToCart = async (productToAdd) => {
     if (!isLoggedIn()) {
       setNotification('🔒 Please login to add items to cart');
@@ -178,12 +190,10 @@ const Dashboard = () => {
     }
 
     try {
-      // Check if product is already in cart
       const existingCartItem = cart.find(item => item._id === productToAdd._id);
       const currentQuantity = existingCartItem ? existingCartItem.quantity : 0;
       const requestedQuantity = currentQuantity + 1;
 
-      // Check stock availability using stockQuantity
       const stockQuantity = productToAdd.stockQuantity || 0;
       
       if (requestedQuantity > stockQuantity) {
@@ -210,7 +220,6 @@ const Dashboard = () => {
         setCart(data.cart);
         setNotification(`🛒 "${productToAdd.name}" added to cart!`);
       } else {
-        // Check if backend also returned stock error
         if (data.message && data.message.includes('stock')) {
           showStockAlert(productToAdd, currentQuantity, stockQuantity);
         } else {
@@ -231,7 +240,6 @@ const Dashboard = () => {
     }
 
     try {
-      // Find the product to check stockQuantity
       const product = products.find(p => p._id === productId);
       const stockQuantity = product?.stockQuantity || 0;
       
@@ -294,62 +302,131 @@ const Dashboard = () => {
     }
   };
 
-  // Wishlist functions - UPDATED TOGGLE VERSION
-  const handleAddToWishlist = async (product) => {
-    if (!isLoggedIn()) {
-      setNotification('🔒 Please login to add items to wishlist');
-      navigate('/login');
-      return;
-    }
+  // Wishlist functions
+  // const handleAddToWishlist = async (product) => {
+  //   if (!isLoggedIn()) {
+  //     setNotification('🔒 Please login to add items to wishlist');
+  //     navigate('/login');
+  //     return;
+  //   }
 
-    // Check if product is already in wishlist
-    const isCurrentlyInWishlist = wishlist.some(item => item._id === product._id);
+  //   const isCurrentlyInWishlist = wishlist.some(item => item._id === product._id);
     
-    try {
-      const token = localStorage.getItem('authToken');
+  //   try {
+  //     const token = localStorage.getItem('authToken');
       
-      if (isCurrentlyInWishlist) {
-        // Remove from wishlist
-        const response = await fetch(`${API_BASE}/users/wishlist/${product._id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+  //     if (isCurrentlyInWishlist) {
+  //       const response = await fetch(`${API_BASE}/users/wishlist/${product._id}`, {
+  //         method: 'DELETE',
+  //         headers: {
+  //           'Authorization': `Bearer ${token}`,
+  //         },
+  //       });
 
-        const data = await response.json();
+  //       const data = await response.json();
         
-        if (data.success) {
-          setWishlist(data.wishlist || []);
-          setNotification('❤️ Removed from wishlist');
-        } else {
-          throw new Error(data.message || 'Failed to remove from wishlist');
-        }
-      } else {
-        // Add to wishlist
-        const response = await fetch(`${API_BASE}/users/wishlist`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ productId: product._id }),
-        });
+  //       if (data.success) {
+  //         setWishlist(data.wishlist || []);
+  //         setNotification('❤️ Removed from wishlist');
+  //       } else {
+  //         throw new Error(data.message || 'Failed to remove from wishlist');
+  //       }
+  //     } else {
+  //       const response = await fetch(`${API_BASE}/users/wishlist`, {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Authorization': `Bearer ${token}`,
+  //         },
+  //         body: JSON.stringify({ productId: product._id }),
+  //       });
 
-        const data = await response.json();
+  //       const data = await response.json();
         
-        if (data.success) {
-          setWishlist(data.wishlist || []);
-          setNotification('❤️ Added to wishlist');
-        } else {
-          throw new Error(data.message || 'Failed to add to wishlist');
-        }
-      }
-    } catch (error) {
-      console.error('Error updating wishlist:', error);
-      setNotification(`❌ ${error.message || 'Failed to update wishlist'}`);
+  //       if (data.success) {
+  //         setWishlist(data.wishlist || []);
+  //         setNotification('❤️ Added to wishlist');
+  //       } else {
+  //         throw new Error(data.message || 'Failed to add to wishlist');
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error updating wishlist:', error);
+  //     setNotification(`❌ ${error.message || 'Failed to update wishlist'}`);
+  //   }
+  // };
+  // Wishlist functions - UPDATED WITH OPTIMISTIC UPDATES
+const handleAddToWishlist = async (product) => {
+  if (!isLoggedIn()) {
+    setNotification('🔒 Please login to add items to wishlist');
+    navigate('/login');
+    return;
+  }
+
+  const isCurrentlyInWishlist = wishlist.some(item => item._id === product._id);
+  
+  try {
+    const token = localStorage.getItem('authToken');  
+    
+    // OPTIMISTIC UPDATE: Update UI immediately
+    if (isCurrentlyInWishlist) {
+      // Remove from wishlist - update UI immediately
+      setWishlist(prev => prev.filter(item => item._id !== product._id));
+    } else {
+      // Add to wishlist - update UI immediately  
+      setWishlist(prev => [...prev, product]);
     }
-  };
+    
+    if (isCurrentlyInWishlist) {
+      // Remove from wishlist - API call
+      const response = await fetch(`${API_BASE}/users/wishlist/${product._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Sync with server response
+        setWishlist(data.wishlist || []);
+        setNotification('💔 Removed from wishlist');
+      } else {
+        // Revert if API call fails
+        setWishlist(prev => [...prev, product]);
+        throw new Error(data.message || 'Failed to remove from wishlist');
+      }
+    } else {
+      // Add to wishlist - API call
+      const response = await fetch(`${API_BASE}/users/wishlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ productId: product._id }),
+      });
+
+      const data = await response.json();
+      
+      console.log("data.wishlist",data);
+      if (data) {
+        // Sync with server response
+        console.log("data.wishlist",data?.wishlist);
+        setWishlist(data.wishlist || []);
+        setNotification('❤️ Added to wishlist');
+      } else {
+        // Revert if API call fails
+        setWishlist(prev => prev.filter(item => item._id !== product._id));
+        throw new Error(data.message || 'Failed to add to wishlist');
+      }
+    }
+  } catch (error) {
+    console.error('Error updating wishlist:', error);
+    setNotification(`❌ ${error.message || 'Failed to update wishlist'}`);
+  }
+};
 
   const handleRemoveFromWishlist = async (productId) => {
     try {
@@ -429,7 +506,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* CSS Styles */}
+      {/* Enhanced CSS Styles for Mobile */}
       <style>{`
         @keyframes fade-in-out {
           0%, 100% { opacity: 0; transform: translateY(-20px); }
@@ -478,6 +555,16 @@ const Dashboard = () => {
           border: 2px solid white;
           box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+          .product-card {
+            min-height: 280px;
+          }
+          .product-image {
+            height: 150px;
+          }
+        }
       `}</style>
       
       {/* Header */}
@@ -491,9 +578,9 @@ const Dashboard = () => {
         onLoginClick={() => navigate('/login')}
       />
       
-      {/* Enhanced Notification with better styling */}
+      {/* Enhanced Mobile Notification */}
       {notification && (
-        <div className={`fixed top-24 right-5 text-white py-4 px-6 rounded-xl shadow-2xl z-50 animate-fade-in-out border-l-4 max-w-md ${
+        <div className={`fixed top-20 left-4 right-4 mx-auto text-white py-3 px-4 rounded-xl shadow-2xl z-50 animate-fade-in-out border-l-4 ${
           notification.includes('❌') || notification.includes('out of stock')
             ? 'bg-red-500 border-red-400' 
             : notification.includes('⚠️') 
@@ -504,8 +591,8 @@ const Dashboard = () => {
             ? 'bg-gray-600 border-gray-500'
             : 'bg-green-500 border-green-400'
         }`}>
-          <div className="flex items-center gap-3">
-            <span className="text-xl">
+          <div className="flex items-center gap-2">
+            <span className="text-lg flex-shrink-0">
               {notification.includes('❌') ? '❌' :
                notification.includes('⚠️') ? '⚠️' :
                notification.includes('🔒') ? '🔒' :
@@ -513,32 +600,37 @@ const Dashboard = () => {
                notification.includes('❤️') ? '❤️' :
                notification.includes('🛒') ? '🛒' : '🎉'}
             </span>
-            <span className="font-semibold text-sm">{notification.replace(/[❌⚠️🔒🗑️❤️🛒🎉]/g, '').trim()}</span>
+            <span className="font-semibold text-sm flex-1 break-words">
+              {notification.replace(/[❌⚠️🔒🗑️❤️🛒🎉]/g, '').trim()}
+            </span>
           </div>
         </div>
       )}
 
-      {/* Rest of your JSX remains the same */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Image Slider */}
-        <ImageSlider slides={mockSlides} />
+      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+        {/* Image Slider - Mobile Optimized */}
+        <div className="mb-6 sm:mb-8">
+          <ImageSlider slides={mockSlides} />
+        </div>
 
-        {/* Results Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">
-              {searchTerm ? `Search Results for "${searchTerm}"` : 'Featured Products'}
+        {/* Results Header - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 truncate">
+              {searchTerm ? `"${searchTerm}"` : 'Featured Products'}
             </h1>
-            <p className="text-gray-600 mt-2">
-              Showing {filteredAndSortedProducts.length} of {products.length} products
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              {filteredAndSortedProducts.length} of {products.length} products
             </p>
           </div>
-          <div className="hidden lg:block text-sm text-gray-500">
-            Sort by: 
+          
+          {/* Sort Dropdown - Mobile Optimized */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">Sort by:</span>
             <select 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="ml-2 border-0 bg-transparent font-semibold text-gray-700 focus:outline-none"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent min-w-0 flex-1"
             >
               <option value="relevance">Relevance</option>
               <option value="price-asc">Price: Low to High</option>
@@ -551,17 +643,17 @@ const Dashboard = () => {
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
-            <p className="mt-4 text-gray-600">Loading products...</p>
+          <div className="text-center py-12 sm:py-20">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-cyan-600"></div>
+            <p className="mt-3 sm:mt-4 text-gray-600 text-sm sm:text-base">Loading products...</p>
           </div>
         )}
 
-        {/* Filters and Products Section */}
+        {/* Filters and Products Section - Mobile Optimized */}
         {!loading && (
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
             {/* Show Filters Button for Desktop */}
-            {!showFilters && (
+            {!showFilters && !isMobile && (
               <div className="hidden lg:block">
                 <button 
                   onClick={() => setShowFilters(true)}
@@ -597,44 +689,51 @@ const Dashboard = () => {
                 onAvailabilityChange={setAvailability}
                 delivery={delivery}
                 onDeliveryChange={setDelivery}
+                isMobile={isMobile}
               />
             )}
             
             {/* Products Grid */}
             <div className="flex-1">
               {/* Mobile Filter Button */}
-              <div className="mb-6 lg:hidden">
-                <button 
-                  onClick={() => setIsFilterOpen(true)}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white rounded-xl shadow-md font-semibold text-gray-700 hover:bg-gray-50 transition-all border"
-                >
-                  <FilterAdjustIcon />
-                  Show Filters & Sort
-                  <span className="bg-cyan-100 text-cyan-600 px-2 py-1 rounded-full text-sm">
-                    {filteredAndSortedProducts.length}
-                  </span>
-                </button>
-              </div>
+              {isMobile && (
+                <div className="mb-4">
+                  <button 
+                    onClick={() => setIsFilterOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white rounded-lg shadow-md font-semibold text-gray-700 hover:bg-gray-50 transition-all border text-sm"
+                  >
+                    <FilterAdjustIcon className="w-4 h-4" />
+                    Filters & Sort
+                    <span className="bg-cyan-100 text-cyan-600 px-2 py-1 rounded-full text-xs">
+                      {filteredAndSortedProducts.length}
+                    </span>
+                  </button>
+                </div>
+              )}
 
-              {/* Products Grid */}
+              {/* Products Grid - Mobile Optimized */}
               {filteredAndSortedProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   {filteredAndSortedProducts.map(product => (
-                    <ProductCard 
-                      key={product._id} 
-                      product={product} 
-                      onAddToCart={handleAddToCart}
-                      onAddToWishlist={handleAddToWishlist}
-                      isInWishlist={isInWishlist(product._id)}
-                      cartItems={cart}
-                    />
+                    <div key={product._id} className="product-card">
+                      <ProductCard 
+                        product={product} 
+                        onAddToCart={handleAddToCart}
+                        onAddToWishlist={handleAddToWishlist}
+                        isInWishlist={isInWishlist(product._id)}
+                        cartItems={cart}
+                        isMobile={isMobile}
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20 bg-white rounded-2xl shadow-sm border">
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h2 className="text-2xl font-bold text-gray-700 mb-4">No products found</h2>
-                  <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                <div className="text-center py-12 sm:py-20 bg-white rounded-xl sm:rounded-2xl shadow-sm border px-4">
+                  <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">🔍</div>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-700 mb-3 sm:mb-4">
+                    No products found
+                  </h2>
+                  <p className="text-gray-500 mb-4 sm:mb-6 text-sm sm:text-base max-w-md mx-auto">
                     {products.length === 0 
                       ? 'No products available. Please check back later.'
                       : 'We couldn\'t find any products matching your criteria. Try adjusting your search or filters.'
@@ -643,7 +742,7 @@ const Dashboard = () => {
                   {products.length > 0 && (
                     <button 
                       onClick={handleClearFilters}
-                      className="bg-cyan-600 text-white px-8 py-3 rounded-lg hover:bg-cyan-700 transition-colors font-semibold"
+                      className="bg-cyan-600 text-white px-6 py-2 sm:px-8 sm:py-3 rounded-lg hover:bg-cyan-700 transition-colors font-semibold text-sm sm:text-base"
                     >
                       Clear All Filters
                     </button>
@@ -666,18 +765,65 @@ const Dashboard = () => {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         products={products}
+        isMobile={isMobile}
       />
       
       {/* Wishlist Modal */}
-     <WishlistModal
-  isOpen={isWishlistOpen}
-  onClose={() => setIsWishlistOpen(false)}
- 
-  wishlistItems={wishlist} // This should be array of full product objects
-  onRemoveFromWishlist={handleRemoveFromWishlist}
-  onAddToCart={handleAddToCart}
-  isLoggedIn={isLoggedIn()}
-/>
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+        wishlistItems={wishlist}
+        onRemoveFromWishlist={handleRemoveFromWishlist}
+        onAddToCart={handleAddToCart}
+        isLoggedIn={isLoggedIn()}
+        isMobile={isMobile}
+      />
+
+      {/* Mobile Bottom Navigation Bar */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center z-40 lg:hidden">
+          <button 
+            onClick={() => setIsFilterOpen(true)}
+            className="flex flex-col items-center justify-center text-gray-600 hover:text-cyan-600 transition-colors flex-1"
+          >
+            <FilterAdjustIcon className="w-5 h-5 mb-1" />
+            <span className="text-xs">Filters</span>
+          </button>
+          
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="flex flex-col items-center justify-center text-gray-600 hover:text-cyan-600 transition-colors flex-1 relative"
+          >
+            <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            {cartItemCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                {cartItemCount}
+              </span>
+            )}
+            <span className="text-xs">Cart</span>
+          </button>
+          
+          <button 
+            onClick={() => setIsWishlistOpen(true)}
+            className="flex flex-col items-center justify-center text-gray-600 hover:text-cyan-600 transition-colors flex-1 relative"
+          >
+            <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
+            <span className="text-xs">Wishlist</span>
+          </button>
+        </div>
+      )}
+
+      {/* Add padding for mobile bottom nav */}
+      {isMobile && <div className="h-16"></div>}
     </div>
   );
 };
