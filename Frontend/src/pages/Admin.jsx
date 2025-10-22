@@ -140,51 +140,95 @@ const Admin = () => {
     }
   };
 
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('authToken');
-    setUploading(true);
+  // const handleAddProduct = async (e) => {
+  //   e.preventDefault();
+  //   const token = localStorage.getItem('authToken');
+  //   setUploading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append('name', newProduct.name);
-      formData.append('description', newProduct.description);
-      formData.append('price', newProduct.price);
-      formData.append('category', newProduct.category);
-      formData.append('stockQuantity', newProduct.stockQuantity);
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append('name', newProduct.name);
+  //     formData.append('description', newProduct.description);
+  //     formData.append('price', newProduct.price);
+  //     formData.append('category', newProduct.category);
+  //     formData.append('stockQuantity', newProduct.stockQuantity);
       
-      if (imageSource === 'url') {
-        formData.append('imageUrl', newProduct.imageUrl);
-      } else if (imageSource === 'file' && newProduct.imageFile) {
-        formData.append('image', newProduct.imageFile);
-      }
+  //     if (imageSource === 'url') {
+  //       formData.append('imageUrl', newProduct.imageUrl);
+  //     } else if (imageSource === 'file' && newProduct.imageFile) {
+  //       formData.append('image', newProduct.imageFile);
+  //     }
 
-      const response = await fetch(`${API_BASE}/products`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
+  //     const response = await fetch(`${API_BASE}/products`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`
+  //       },
+  //       body: formData
+  //     });
 
-      const data = await response.json();
+  //     const data = await response.json();
       
-      if (data.success) {
-        setShowAddProduct(false);
-        resetProductForm();
-        fetchData(); // Refresh products list
-        alert('Product added successfully!');
-      } else {
-        alert('Error adding product: ' + data.message);
-      }
-    } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Error adding product');
-    } finally {
-      setUploading(false);
+  //     if (data.success) {
+  //       setShowAddProduct(false);
+  //       resetProductForm();
+  //       fetchData(); // Refresh products list
+  //       alert('Product added successfully!');
+  //     } else {
+  //       alert('Error adding product: ' + data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error adding product:', error);
+  //     alert('Error adding product');
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+const handleAddProduct = async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem('authToken');
+  setUploading(true);
+
+  try {
+    const productData = {
+      name: newProduct.name,
+      description: newProduct.description,
+      price: parseFloat(newProduct.price) || 0,
+      category: newProduct.category,
+      stockQuantity: parseInt(newProduct.stockQuantity) || 0,
+      imageUrl: newProduct.imageUrl, // Always use URL for now
+      inStock: true,
+      fastDelivery: false
+    };
+
+    console.log('🔄 Sending JSON:', productData);
+
+    const response = await fetch(`${API_BASE}/products`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(productData)
+    });
+
+    const data = await response.json();
+    
+    if (data.success) {
+      setShowAddProduct(false);
+      resetProductForm();
+      fetchData();
+      alert('Product added successfully!');
+    } else {
+      alert('Error adding product: ' + data.message);
     }
-  };
-
+  } catch (error) {
+    console.error('Error adding product:', error);
+    alert('Error adding product: ' + error.message);
+  } finally {
+    setUploading(false);
+  }
+};
   const resetProductForm = () => {
     setNewProduct({
       name: '',
@@ -530,7 +574,6 @@ const Admin = () => {
                       </div>
                     </div>
                   )}
-                  
                 </div>
               </div>
 
