@@ -7,7 +7,7 @@ const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = 'https://e-commerce-mw7r.onrender.com/api';
 
   useEffect(() => {
     fetchOrders();
