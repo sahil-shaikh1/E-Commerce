@@ -6,7 +6,7 @@ const OrderConfirmation = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const API_BASE = 'http://localhost:5000/api';
+   const API_BASE = 'https://e-commerce-mw7r.onrender.com/api';
 
   useEffect(() => {
     fetchOrder();
