@@ -7,9 +7,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* About Section */}
           <div className="lg:col-span-2">
-            <h3 className="font-bold text-white text-lg mb-4">ABOUT FLIPKART</h3>
+            <h3 className="font-bold text-white text-lg mb-4">ABOUT CherishIndia</h3>
             <p className="text-sm leading-relaxed mb-4">
-              Flipkart is India's leading e-commerce marketplace, offering millions of products across categories with fast delivery and great prices.
+              CherishIndia is India's leading e-commerce marketplace, offering millions of products across categories with fast delivery and great prices.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="hover:text-white transition-colors">
@@ -52,12 +52,12 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-white text-lg mb-4">CONTACT US</h3>
             <address className="not-italic text-sm leading-relaxed">
-              Flipkart Internet Private Limited,<br />
+              CherishIndia Internet Private Limited,<br />
               Buildings Alyssa, Begonia &<br />
               Clove Embassy Tech Village,<br />
               Bengaluru, Karnataka 560103<br />
-              <a href="mailto:help@flipkart.com" className="hover:text-white transition-colors">
-                help@flipkart.com
+              <a href="mailto:help@cherishindia.com" className="hover:text-white transition-colors">
+                help@cherishindia.com
               </a>
             </address>
           </div>
@@ -65,7 +65,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} Flipkart. All rights reserved.
+            &copy; {new Date().getFullYear()} CherishIndia. All rights reserved.
           </p>
         </div>
       </div>
