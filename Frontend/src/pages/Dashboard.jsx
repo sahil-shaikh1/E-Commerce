@@ -388,7 +388,7 @@ const handleAddToWishlist = async (product) => {
 
       const data = await response.json();
       
-      if (data.success) {
+      if (data) {
         // Sync with server response
         setWishlist(data.wishlist || []);
         setNotification('💔 Removed from wishlist');
@@ -439,8 +439,9 @@ const handleAddToWishlist = async (product) => {
       });
 
       const data = await response.json();
+       console.log("remove data.wishlist",data);
       
-      if (data.success) {
+      if (data) {
         setWishlist(data.wishlist || []);
         setNotification('🗑️ Item removed from wishlist');
       } else {
