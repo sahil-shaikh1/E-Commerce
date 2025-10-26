@@ -39,6 +39,34 @@ const Dashboard = () => {
     return !!token;
   };
 
+  // Add this useEffect to debug cart structure
+useEffect(() => {
+  if (cart.length > 0) {
+    console.log('🛒 CART ITEMS DEBUG:', {
+      cartItems: cart.map(item => ({
+        // All possible ID fields
+        _id: item._id,
+        productId: item.productId,
+        productIdType: typeof item.productId,
+        productIdValue: item.productId,
+        
+        // Product object details
+        product: item.product,
+        productExists: !!item.product,
+        productIdFromProduct: item.product?._id,
+        
+        // Item details
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        
+        // Check if we have any valid product ID
+        hasValidProductId: !!(item.productId || item.product?._id || item._id)
+      }))
+    });
+  }
+}, [cart]);
+
   // Check mobile screen size
   useEffect(() => {
     const checkMobile = () => {
@@ -458,6 +486,33 @@ const handleAddToWishlist = async (product) => {
     return wishlist.some(item => item._id === productId);
   };
 
+//clear cart function
+// In Dashboard.jsx - add this function
+const handleClearCart = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE}/users/cart/clear`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setCart([]);
+      setNotification('🗑️ Cart cleared successfully');
+    } else {
+      throw new Error(data.message || 'Failed to clear cart');
+    }
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    setNotification('❌ Error clearing cart');
+    throw error;
+  }
+};
+
   // Filter functions
   const handleClearFilters = () => {
     setSortBy('relevance');
@@ -764,6 +819,7 @@ const handleAddToWishlist = async (product) => {
         onClose={() => setIsCartOpen(false)}
         cartItems={cart}
         onUpdateQuantity={handleUpdateQuantity}
+         onClearCart={handleClearCart} 
         onRemoveItem={handleRemoveItem}
         products={products}
         isMobile={isMobile}
