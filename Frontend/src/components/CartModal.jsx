@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { formatPrice } from '../utils/helpers';
 import Checkout from './Checkout';
 
@@ -14,25 +14,46 @@ const CartModal = ({
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
 
+  // Helper function to extract correct product ID from cart item structure
+  const getProductId = (item) => {
+    // Priority 1: From nested product object (your current structure)
+    if (item.product && item.product._id) {
+      return item.product._id;
+    }
+    
+    // Priority 2: Direct productId field
+    if (item.productId && typeof item.productId === 'string') {
+      return item.productId;
+    }
+    
+    // Priority 3: Item _id (as fallback)
+    if (item._id) {
+      return item._id;
+    }
+    
+    console.error('❌ No valid product ID found for item:', item);
+    return null;
+  };
+
+  // Helper function to get product details
+  const getProductDetails = (item) => {
+    return item.product || item;
+  };
+
   // Calculate totals
   const { subtotal, itemCount, shipping, tax, total, discount, finalTotal } = useMemo(() => {
     const subtotalValue = cartItems.reduce((sum, item) => {
-      const price = item.product?.price || item.price || 0;
+      const product = getProductDetails(item);
+      const price = product.price || 0;
       const quantity = item.quantity || 1;
       return sum + (price * quantity);
     }, 0);
 
     const itemCountValue = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
     
-    // Calculate shipping (free over ₹5000)
     const shippingValue = subtotalValue > 5000 ? 0 : 99;
-    
-    // Calculate tax (18% GST on subtotal)
     const taxValue = subtotalValue * 0.18;
-    
-    // Calculate discount (simple promo code example)
     const discountValue = promoCode === 'SAVE10' ? subtotalValue * 0.1 : 0;
-    
     const totalValue = subtotalValue + shippingValue + taxValue - discountValue;
 
     return {
@@ -42,7 +63,7 @@ const CartModal = ({
       tax: taxValue,
       discount: discountValue,
       total: totalValue,
-      finalTotal: Math.max(0, totalValue) // Ensure non-negative total
+      finalTotal: Math.max(0, totalValue)
     };
   }, [cartItems, promoCode]);
 
@@ -51,6 +72,15 @@ const CartModal = ({
       alert('Your cart is empty!');
       return;
     }
+
+    // Validate all items have proper product IDs before proceeding
+    const invalidItems = cartItems.filter(item => !getProductId(item));
+    if (invalidItems.length > 0) {
+      console.error('Invalid items found:', invalidItems);
+      alert('Some items in your cart have invalid product information. Please remove and re-add them.');
+      return;
+    }
+
     setShowCheckout(true);
   };
 
@@ -58,7 +88,7 @@ const CartModal = ({
     console.log('Order placed successfully:', order);
     setShowCheckout(false);
     onClose();
-    setPromoCode(''); // Reset promo code after successful order
+    setPromoCode('');
   };
 
   const handleClearCart = async () => {
@@ -81,7 +111,6 @@ const CartModal = ({
       return;
     }
     
-    // Simple promo code validation
     const validPromoCodes = ['SAVE10', 'WELCOME15', 'FREESHIP'];
     if (validPromoCodes.includes(promoCode.toUpperCase())) {
       alert(`Promo code "${promoCode}" applied successfully!`);
@@ -155,15 +184,32 @@ const CartModal = ({
             ) : (
               <div className="space-y-4">
                 {cartItems.map((item) => {
-                  const product = item.product || item;
+                  const product = getProductDetails(item);
+                  const productId = getProductId(item);
                   const quantity = item.quantity || 1;
-                  const itemId = item._id || product._id;
-                  const productId = product._id;
                   const itemTotal = (product.price || 0) * quantity;
-                  const maxStock = product.stockQuantity || 99; // Fallback stock
+                  const maxStock = product.stockQuantity || 99;
+
+                  if (!productId) {
+                    console.error('❌ Item without valid product ID:', item);
+                    return (
+                      <div key={item._id} className="flex items-start gap-4 bg-red-50 p-4 rounded-xl border border-red-200">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-red-800">Invalid Product</h3>
+                          <p className="text-sm text-red-600">This item has missing product information</p>
+                          <button 
+                            onClick={() => onRemoveItem(item._id)} // Use cart item ID for removal
+                            className="text-sm text-red-500 hover:text-red-700 mt-2 px-3 py-1 border border-red-200 rounded hover:bg-red-100 transition-colors"
+                          >
+                            Remove Invalid Item
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
 
                   return (
-                    <div key={itemId} className="flex items-start gap-4 bg-white p-4 rounded-xl border border-gray-200 hover:border-cyan-200 transition-colors group">
+                    <div key={item._id} className="flex items-start gap-4 bg-white p-4 rounded-xl border border-gray-200 hover:border-cyan-200 transition-colors group">
                       <img 
                         src={product.image || product.imageUrl || '/placeholder-image.jpg'} 
                         alt={product.name}
@@ -179,6 +225,11 @@ const CartModal = ({
                           <p className="text-sm text-gray-500 mb-1">{product.category}</p>
                         )}
                         <p className="text-lg font-bold text-cyan-600">₹{formatPrice(product.price)}</p>
+                        
+                        {/* Debug info - shows the actual product ID being used */}
+                        <div className="text-xs text-gray-400 mt-1">
+                          Product ID: {productId}
+                        </div>
                         
                         {/* Quantity Controls */}
                         <div className="flex items-center justify-between mt-3">
@@ -331,7 +382,22 @@ const CartModal = ({
       {/* Checkout Modal */}
       {showCheckout && (
         <Checkout
-          cartItems={cartItems}
+          cartItems={cartItems.map(item => {
+            const product = getProductDetails(item);
+            const productId = getProductId(item);
+            
+            return {
+              // Use the actual product ID from the nested product object
+              productId: productId,
+              _id: productId, // Also set _id to product ID for consistency
+              name: product.name,
+              price: product.price,
+              quantity: item.quantity,
+              image: product.image,
+              // Include the full product object if needed
+              product: product
+            };
+          })}
           onOrderSuccess={handleOrderSuccess}
           onClose={() => setShowCheckout(false)}
           subtotal={subtotal}
