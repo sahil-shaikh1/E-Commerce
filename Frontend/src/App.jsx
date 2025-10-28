@@ -5,6 +5,7 @@ import Login from './pages/login'; // You'll need to create this
 import Admin from './pages/Admin'; // You'll need to create this
 import OrderConfirmation from './components/OrderConfirmation';
 import MyOrders from './components/MyOrders'; // You'll need to create this
+import ProductDetail from './pages/ProductDetail';
 
 import './App.css';
 
