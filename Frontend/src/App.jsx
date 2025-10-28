@@ -18,6 +18,7 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
         <Route path="/my-orders" element={<MyOrders />} />
+              <Route path="/product/:productId" element={<ProductDetail />} />
         
         </Routes>
       </div>
