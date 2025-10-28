@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import StarIcon from '../components/icons/StarIcon';
 import HeartIcon from '../components/icons/HeartIcon';
 import TruckIcon from '../components/icons/TruckIcon';
 
 const ProductCard = ({ product, onAddToCart, onAddToWishlist, isInWishlist, cartItems = [] }) => {
+  const navigate = useNavigate();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+
   // Add safety check for product
   if (!product) {
     return null;
   }
-
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // Calculate current quantity in cart for this product
   const getCurrentCartQuantity = () => {
@@ -25,8 +27,13 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist, isInWishlist, cart
   const canAddMore = currentCartQuantity < stockQuantity;
   const remainingStock = stockQuantity - currentCartQuantity;
 
+  // Handle product card click to navigate to detail page
+  const handleProductClick = () => {
+    navigate(`/product/${product._id}`);
+  };
+
   const handleAddToCart = async (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent navigation when clicking cart button
     
     // Check all stock conditions
     if (isOutOfStock || !canAddMore || isAddingToCart) return;
@@ -42,7 +49,7 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist, isInWishlist, cart
   };
   
   const handleWishlist = (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent navigation when clicking wishlist button
     onAddToWishlist(product);
   };
 
@@ -67,7 +74,10 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist, isInWishlist, cart
   const isButtonDisabled = isOutOfStock || !canAddMore || isAddingToCart;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100 hover:border-cyan-200 group">
+    <div 
+      className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100 hover:border-cyan-200 group cursor-pointer"
+      onClick={handleProductClick} // Make entire card clickable
+    >
       <div className="relative overflow-hidden">
         {!imageLoaded && !imageError && (
           <div className="w-full h-48 bg-gray-200 animate-pulse flex items-center justify-center">
