@@ -39,20 +39,28 @@ const Filters = ({
         }
         lg:sticky lg:top-24 lg:h-auto lg:shadow-lg lg:rounded-xl lg:translate-x-0
       `}>
+        {/* Header with Close Button */}
         <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+          <div className="flex items-center gap-3">
+            <FilterAdjustIcon className="text-cyan-600" />
+            <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+          </div>
           <div className="flex items-center gap-4">
             <button 
               onClick={onClearFilters} 
-              className="text-sm text-cyan-600 hover:underline font-semibold"
+              className="text-sm text-cyan-600 hover:underline font-semibold cursor-pointer hover:text-cyan-700 transition-colors"
             >
               Clear All
             </button>
+            {/* Close Button - Always Visible */}
             <button 
               onClick={onClose} 
-              className="lg:hidden text-gray-500 hover:text-gray-800 text-2xl font-bold"
+              className="text-gray-500 hover:text-gray-800 hover:bg-gray-100 p-1 rounded-full transition-all cursor-pointer"
+              title="Close filters"
             >
-              &times;
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -61,12 +69,12 @@ const Filters = ({
         <div className="mb-6">
           <h3 className="font-semibold mb-3 text-gray-700">Availability</h3>
           <div className="space-y-2">
-            <label className="flex items-center">
+            <label className="flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={availability.inStock}
                 onChange={(e) => onAvailabilityChange({ ...availability, inStock: e.target.checked })}
-                className="rounded text-cyan-600 focus:ring-cyan-500"
+                className="rounded text-cyan-600 focus:ring-cyan-500 cursor-pointer"
               />
               <span className="ml-2 text-sm text-gray-600">In Stock</span>
             </label>
@@ -77,12 +85,12 @@ const Filters = ({
         <div className="mb-6">
           <h3 className="font-semibold mb-3 text-gray-700">Delivery</h3>
           <div className="space-y-2">
-            <label className="flex items-center">
+            <label className="flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={delivery.fastDelivery}
                 onChange={(e) => onDeliveryChange({ ...delivery, fastDelivery: e.target.checked })}
-                className="rounded text-cyan-600 focus:ring-cyan-500"
+                className="rounded text-cyan-600 focus:ring-cyan-500 cursor-pointer"
               />
               <span className="ml-2 text-sm text-gray-600">Fast Delivery</span>
             </label>
@@ -118,7 +126,7 @@ const Filters = ({
               <button
                 key={rating}
                 onClick={() => onRatingChange(rating === minRating ? 0 : rating)}
-                className={`flex items-center gap-3 p-3 rounded-lg text-left transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-lg text-left transition-all cursor-pointer ${
                   minRating === rating 
                     ? 'bg-cyan-50 border border-cyan-200 text-cyan-700' 
                     : 'hover:bg-gray-50 border border-transparent'
@@ -143,7 +151,7 @@ const Filters = ({
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all ${
+                className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all cursor-pointer ${
                   selectedCategory === cat 
                     ? 'bg-cyan-600 text-white font-semibold shadow-md' 
                     : 'hover:bg-gray-50 text-gray-700 border'
@@ -160,7 +168,7 @@ const Filters = ({
           <h3 className="font-semibold mb-3 text-gray-700">Sort by</h3>
           <select
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-white"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-white cursor-pointer"
           >
             <option value="relevance">Relevance</option>
             <option value="price-asc">Price: Low to High</option>
@@ -168,6 +176,16 @@ const Filters = ({
             <option value="rating-desc">Customer Rating</option>
             <option value="discount-desc">Best Discount</option>
           </select>
+        </div>
+
+        {/* Mobile Close Button at Bottom */}
+        <div className="lg:hidden mt-8 pt-6 border-t">
+          <button 
+            onClick={onClose}
+            className="w-full bg-cyan-600 text-white py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors cursor-pointer"
+          >
+            Apply Filters
+          </button>
         </div>
       </aside>
     </>
